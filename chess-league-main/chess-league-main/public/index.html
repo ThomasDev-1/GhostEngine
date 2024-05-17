@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Tiny Chess League</title>
+    <link rel="icon" href="/public/favicon.svg"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+:root {
+  --text-color: #7a4e3c;
+  --bg-color: #f6eae0;
+  --hl-color:#eddfcc;
+  --hover-color:#ddc1a7;
+}
+body {
+  background: radial-gradient(circle at 50% 0%, #f7e8d3 0%, #dabea4 71%, #9a8276 100%);
+  background-size: cover;
+  margin: 0;
+  font-family: Verdana;
+}
+main {
+  height: 100vh;
+  margin: 0;
+  padding: 20px;
+  box-sizing: border-box;
+
+  display: grid;
+  grid-gap: 20px;
+
+  grid-template-columns: 2fr 4fr 2fr;
+  grid-template-rows: minmax(auto, 200px) 1fr 1fr 1fr 1fr;
+  grid-template-areas: 
+    "head head head"
+    "hlead live old"
+    "hlead live old"
+    "blead live old"
+    "blead live upl";
+}
+#head-tile { grid-area: head; }
+#dev-leaderboard-tile {
+  grid-area: hlead;
+  overflow: hidden;
+}
+#bot-leaderboard-tile {
+  grid-area: blead;
+  overflow: hidden;
+}
+#old-games-tile {
+  grid-area: old;
+  overflow: hidden;
+}
+#live-games-tile { grid-area: live; }
+#upload-tile { grid-area: upl; }
+
+#login-info { color: #b09789; }
+#login-txt {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.tile {
+  background-color: var(--bg-color);
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--text-color);
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.my-bot {
+  display: flex;
+  align-items: center;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  background-color: var(--hl-color);
+  padding: 4px;
+  margin: 4px 4px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #7a4e3c;
+  flex-grow: 1;
+}
+.place {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  padding-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.place img {
+  width: 100%;
+  height: 100%;
+}
+.elo {
+  margin-left: auto;
+  font-size: smaller;
+}
+.delete {
+  background-color: var(--hl-color);
+  padding: 4px 8px;
+  font-size: smaller;
+  border-radius: 4px;
+  height: calc(2rem);
+  align-items: center;
+  display: flex;
+  text-decoration: none;
+}
+
+h2 {
+  text-align: center;
+  color: #694638;
+}
+
+.crown {
+  display: inline-block;
+  background: url(/public/crown.svg);
+  background-size: contain;
+  height: 1rem;
+  width: 1rem;
+}
+.crown.w { transform: translate(11px, -3px) rotate(-45deg); }
+.crown.b { transform: translate(-11px, -3px) rotate(45deg); }
+
+
+#head-tile {
+  background: url(/public/head5_q90.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+#side-links {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  height: 100%;
+}
+
+#side-links a {
+    border: 1px solid rgba(156, 129, 117, 0.46);
+    padding: 4px;
+    margin: 4px;
+    border-radius: 4px;
+    color: black;
+    text-decoration: none;
+    width: 1.5rem;
+    background: #f6eae080;
+    display: flex;
+}
+#side-links a img {
+    width: 100%;
+}
+
+#timer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  transform: translate(0,85%);
+  width: 100%;
+  text-align: center;
+  color: var(--hover-color);
+}
+#timer-content {
+  font-size: xxx-large;
+}
+
+
+#dev-list, #bot-list, #old-games {
+  overflow-y: auto
+}
+
+#live-games {
+  display: grid;
+  grid-gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  overflow-y: auto;
+}
+canvas {
+  aspect-ratio: 1;
+  width: 100%;
+}
+
+.live-game:not(.used) {
+    opacity: 0;
+}
+
+.name {
+  display: flex;
+  font-size: smaller;
+}
+
+.game {
+  display: flex;
+  color: #7a4e3c;
+  justify-content: center;
+  padding: 5px;
+  text-decoration: none;
+  border-radius: 4px;
+  border-bottom: 1px solid var(--hl-color);
+}
+
+.game:hover, .leaderboard-item:hover, .delete:hover {
+  cursor: pointer;
+  background-color: var(--hover-color)
+}
+
+.bot {
+  display: inline-block;
+  width: 50%;
+  margin: 0px 7px;
+}
+.bot.white {
+  text-align: right;
+}
+
+button {
+  background-color: #9c8276;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  padding: 8px;
+  cursor: pointer;
+  margin-top: auto;
+  font-size: larger;
+  transition: 0.2s;
+}
+button:disabled {
+  background-color: #79675f;
+  cursor: wait;
+}
+button:hover {
+  background-color: #79675f;
+}
+dialog {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid #9c8276;
+  border-radius: 4px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  width: 30rem;
+}
+
+dialog::backdrop {
+  -webkit-backdrop-filter: blur(5px); /* Safari needs this */
+  backdrop-filter: blur(5px);
+}
+dialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+dialog form input, textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 4px;
+  padding: 6px;
+  border: none;
+}
+#compilation-message {
+    font-size: small;
+    color: black;
+    background: #9c827645;
+    padding: 4px;
+    border-radius: 4px;
+}
+.info-heading {
+  display: flex;
+  gap: 6px;
+  fill: #9c8276;
+  border-bottom: 1px solid #9c8276;
+}
+.info-heading img {
+  width: 1rem;
+}
+#compilation-message.hidden {
+  display: none;
+}
+
+@media only screen and (max-width: 1200px) {
+  /* Tablet */
+  body { font-size: 10pt; }
+  h2 { font-size: 12pt; }
+  main {
+    grid-template-columns: 1fr 2fr 1fr;
+    padding: 12px;
+    grid-gap: 12px;
+    grid-template-rows: minmax(auto, 160px) 1fr 1fr 1fr;
+    grid-template-areas: 
+      "head head head"
+      "hlead live live"
+      "blead live live"
+      "old old upl";
+  }
+  #timer { transform: translate(0,60%); }
+  #live-games {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+@media only screen and (max-width: 800px) {
+  /* Phone */
+  body { font-size: 10pt; }
+  h2 { font-size: 12pt; }
+  main {
+    height: unset;
+
+    padding: 8px;
+    grid-gap: 8px;
+    font-size: smaller;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 80px 380px 400px 400px;
+    grid-template-areas: 
+      "head head"
+      "hlead blead"
+      "live live"
+      "old old"
+      "upl upl";
+  }
+  .tile { padding: 4px; }
+
+  #timer { transform: translate(0,42%); }
+  #timer-content { font-size: 20pt; }
+  #side-links { display: none; }
+
+  .place {
+    width: 20px;
+  }
+
+  #live-games {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+    </style>
+  </head>
+
+  <body>
+    <dialog id="upload-dialog">
+      <h2>Upload a new bot</h2>
+      <form>
+        <label>
+          <div>Your name</div>
+          <input required name="devname" type="text" placeholder="Will Smith" maxlength="30"></input>
+        </label>
+        <label>
+          <div>Email</div>
+          <input required name="email" type="email" placeholder="w.smith@example.com"></input>
+        </label>
+        <label>
+          <div>Bot name</div>
+          <input required name="botname" type="text" placeholder="Optimus Prime" maxlength="30"></input>
+        </label>
+        <label>
+          <div>Code</div>
+          <textarea required name="code" rows="10" placeholder="using ChessChallenge.API;
+
+public class MyBot : IChessBot
+{
+    public Move Think(Board board, Timer timer)
+    {
+        Move[] moves = board.GetLegalMoves();
+        ...
+"></textarea>
+        </label>
+        <button type="submit">Go!</button>
+        <div id="compilation-message">
+          <div class="info-heading">
+            <img src="/public/error.svg"></img>
+            Your code didn't compile. Here is the compilation message:
+          </div>
+          <code></code>
+        </div>
+      </form>
+    </dialog>
+
+    <main>
+      <div id="head-tile" class="tile">
+        <div id="side-links">
+          <a id="faq-btn"><img src="/public/faq.svg"></a>
+          <a href="https://discord.gg/pAadhun2px"><img src="/public/discord.svg"></a>
+          <a href="https://www.youtube.com/watch?v=iScy18pVR58"><img src="/public/youtube.svg"></a>
+        </div>
+        <div id="timer">
+          <span id="timer-content"></span>
+          <br>
+          <span>days left</span>
+        </div>
+      </div>
+
+      <div id="dev-leaderboard-tile" class="tile">
+        <h2>Dev Leaderboard</h2>
+        <div id="dev-list"></div>
+      </div>
+
+      <div id="bot-leaderboard-tile" class="tile">
+        <h2>Bot Leaderboard</h2>
+        <div id="bot-list"></div>
+      </div>
+
+      <div id="live-games-tile" class="tile">
+        <h2>Live Games</h2>
+        <div id="live-games">
+        </div>
+      </div>
+
+      <div id="old-games-tile" class="tile">
+        <h2>Old Games</h2>
+        <div id="old-games"></div>
+      </div>
+
+      <div id="upload-tile" class="tile">
+        <h2>Your Bots</h2>
+        <div id="my-bot-list"></div>
+        <button id="open-upload-dialog">Upload MyBot.cs</button>
+      </div>
+
+    </main>
+
+    <dialog id="faq">
+      <h3>What is the purpose of this site?</h3>
+      Send the bot you wrote for <a href="https://www.youtube.com/watch?v=iScy18pVR58">Sebastian
+      Lague's chess coding challenge</a>. It will be evaluated against other bots and ranked
+      publicly. You code will not be shown. You can submit multiple bots to experiment with
+      different strategies. The best bot will count as your elo (Dev Elo Leaderboard).
+
+      <h3>How are bots matched?</h3>
+      The first player is chosen randomly, where bots that have played fewer games are preferred. The
+      second bot is chosen so that it has a similar ELO to the first bot.
+
+      <h3>How long until my ELO settles?</h3>
+      Wait a couple of hours until your bot played until 50 games. The ELO never really settles
+      because new bots are added all the time.
+
+      <h3>Can I support this site?</h3>
+      <a href="https://www.buymeacoffee.com/stjo">You can buy me a coffee.</a> A sufficient amount
+      of coffee can be converted into a code and CPUs to run this site.
+
+      <h3>I have some other question...</h3>
+      <a href="https://discord.gg/pAadhun2px">Join the discord server</a> and ask there. It's not
+      only about this site but also about the challenge in general.
+    </dialog>
+
+    <dialog id="login">
+      <h2>Login</h2>
+      <p>
+        You receive a link via email. Clicking it will allow you to control all the bots with this
+        email.
+      </p>
+      <form action="/login/" method="POST">
+        <input type="email" name="email" placeholder="john.smith@example.com"></input>
+        <button type="submit">Send</button>
+      </form>
+    </dialog>
+
+    <script async src="https://analytics.umami.is/script.js" data-website-id="32881098-bbb9-407c-9cdb-e2d3152b0dd1"></script>
+    <script type="module" src="/public/bundled/index.js"></script>
+  </body>
+</html>
+

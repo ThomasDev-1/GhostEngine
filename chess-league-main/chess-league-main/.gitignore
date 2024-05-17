@@ -1,0 +1,6 @@
+.DS_Store
+bun.lockb
+db.sqlite
+node_modules/
+compiled/
+public/bundled/

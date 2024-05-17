@@ -1,0 +1,17 @@
+{
+  "version": "1.0.103",
+  "name": "webui",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "dependencies": {
+    "chess.js": "^1.0.0-beta.6",
+    "chessboard-element": "^1.2.0",
+    "hono": "^3.4.3",
+    "postgres": "^3.3.5"
+  },
+  "scripts": {
+    "start": "bun run backend/index.ts"
+  },
+  "module": "src/index.js"
+}
